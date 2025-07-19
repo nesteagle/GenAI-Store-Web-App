@@ -24,8 +24,9 @@ vector_store = InMemoryVectorStore(embeddings)
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
 
 items = [
-#... assume List[Item] from DB module
+    # ... assume List[Item] from DB module
 ]
+
 
 def get_section(x: int, n_splits: int):
     if n_splits == 1:
@@ -37,8 +38,13 @@ def get_section(x: int, n_splits: int):
     else:
         return "end"
 
-def create_chunked_docs_from_items(items: List[Item], chunk_size=1500, chunk_overlap=200):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+
+def create_chunked_docs_from_items(
+    items: List[Item], chunk_size=1500, chunk_overlap=200
+):
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size, chunk_overlap=chunk_overlap
+    )
     all_docs = []
     for item in items:
         # Prepare source text to split
@@ -58,11 +64,12 @@ def create_chunked_docs_from_items(items: List[Item], chunk_size=1500, chunk_ove
                         "id": item.id,
                         "name": item.name,
                         "section": section,
-                        "price": item.price
-                    }
+                        "price": item.price,
+                    },
                 )
             )
     return all_docs
+
 
 chunked_docs = create_chunked_docs_from_items(items)
 
@@ -83,6 +90,7 @@ Helpful Answer:"""
 
 prompt = PromptTemplate.from_template(template)
 
+
 class Search(TypedDict):
     """Search query."""
 
@@ -93,8 +101,10 @@ class Search(TypedDict):
         "Section to query.",
     ]
 
+
 class State(TypedDict):
     """Helper class for RAG"""
+
     question: str
     query: Search
     context: List[Document]
@@ -123,10 +133,7 @@ def generate(state: State):
     return {"answer": response.content}
 
 
-def recommend_similar_item(
-    query: str,
-    top_k: int = 1
-) -> list[dict]:
+def recommend_similar_item(query: str, top_k: int = 1) -> list[dict]:
     """Recommends k product items most similar (by name and description) to the query."""
     # Embed the query text
     query_vector = embeddings.embed([query])[0]
@@ -143,9 +150,11 @@ def recommend_similar_item(
         for doc in results
     ]
 
+
 def recommend_item():
     """Recommends bestseller items"""
-    return [1,2] # hardcoded for now.
+    return [1, 2]  # hardcoded for now.
+
 
 def add_item_to_cart(item_id: int, quantity: int = 1) -> str:
     """
@@ -157,21 +166,21 @@ def add_item_to_cart(item_id: int, quantity: int = 1) -> str:
     # For now, just return a string for LLM chat
     return f"Added {quantity} of item {item_id} to your cart."
 
+
 def get_cart() -> List[dict]:
-    """
-    Returns the current contents of the user's cart as a list of items.
-    """
+    """Returns the current contents of the user's cart as a list of items."""
     # Implement using your in-memory or persisted cart model
     pass
 
+
 def remove_item_from_cart(item_id: int) -> str:
-    """
-    Removes the specified item from the user's cart.
-    """
+    """ Removes the specified item from the user's cart."""
     # Implement removal logic
     pass
 
+
 def direct_to_checkout_menu():
+    """Directs the user to checkout menu"""
     # returns an event? that directs to checkout menu
     pass
 
@@ -180,13 +189,23 @@ graph_builder = StateGraph(State).add_sequence([analyze_query, retrieve, generat
 graph_builder.add_edge(START, "analyze_query")
 
 
-llm.bind_tools([recommend_similar_item, add_item_to_cart, get_cart, remove_item_from_cart, direct_to_checkout_menu])
+llm.bind_tools(
+    [
+        recommend_similar_item,
+        add_item_to_cart,
+        get_cart,
+        remove_item_from_cart,
+        direct_to_checkout_menu,
+    ]
+)
 
-def get_example_answer(question:str):
+
+def get_example_answer(question: str):
     graph = graph_builder.compile()
     result = graph.invoke({"question": question})
     answer = result["answer"]
     print(answer)
     return answer
+
 
 get_example_answer("What is the shape of the Earth?")
