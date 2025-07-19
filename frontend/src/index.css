@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+/* --- light theme --- */
+@theme {
+    /* === colors === */
+
+    /* text */
+    --color-text-primary: #23252C;
+    /* main content, headings */
+    --color-text-muted: #6B7280;
+    /* secondary, less important */
+    --color-text-accent: #4F46E5;
+    /* for links, highlights */
+    --color-text-white: #FFFFFF;
+    /* on colored buttons, accents */
+
+    /* buttons */
+    --color-button: #4F46E5;
+    /* primary button background */
+    --color-button-hover: #3730A3;
+    /* button hover */
+    --color-button-active: #312E81;
+    /* button pressed */
+    --color-button-text: #FFFFFF;
+    /* button text */
+
+    /* backgrounds */
+    --color-bg-primary: #F9FAFB;
+    /* app/page background */
+    --color-bg-secondary: #FFFFFF;
+    /* cards, modals, sheets */
+    --color-bg-tertiary: #F1F2F4;
+    /* inputs, muted containers */
+    --color-backdrop: rgba(42, 45, 52, 0.48);
+
+    /* status colors */
+    --color-success: #10B981;
+    /* success/confirmation */
+    --color-warning: #F59E0B;
+    /* warning/alert */
+    --color-error: #EF4444;
+    /* error, validation */
+    --color-error-deep: #DC2626;
+    /* critical error */
+
+    /* borders */
+    --color-border: #E5E7EB;
+    /* subtle border for cards, inputs */
+    --color-border-muted: #F3F4F6;
+    /* same as tertiary */
+    /* disabled */
+    --color-disabled-bg: #E5E7EB;
+    --color-disabled-text: #A1A1AA;
+
+    /* === typography === */
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-display: 'DM Sans', 'Inter', sans-serif;
+    --font-product-name: 'Playfair Display', serif;
+    --font-mono: 'JetBrains Mono', 'Menlo', 'Monaco', 'monospace';
+    /* for code, prices */
+
+    /* === scaling === */
+    --scale-icon-small: 1.10;
+    /* 10% increase */
+    --scale-icon-medium: 1.08;
+    /* 8% increase */
+    --scale-icon: 1.05;
+    /* 5% increase */
+    --scale-minimal: 1.02;
+    /* extremely subtle */
+    --scale-active: 0.95;
+    /* for actions such as button clicked */
+
+
+    /* === radius & shadow === */
+    --rounded: 0.5rem;
+    --rounded-full: 9999px;
+    --shadow-xs: 0 1px 2px 0 rgba(42, 45, 52, 0.04);
+    --shadow-sm: 0 1.5px 4px 0 rgba(42, 45, 52, 0.06);
+    --shadow: 0 4px 14px rgba(42, 45, 52, 0.08);
+    --shadow-lg: 0 8px 32px rgba(42, 45, 52, 0.12);
+
+    /* === transitions === */
+    --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+    /* for hover, tap */
+    --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* for overlays, modals */
+    --transition-fade: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-transform: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-color: color 0.18s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* accents */
+    --color-accent: #4F46E5;
+    --color-ring-accent: #4F46E5;
+}
+
+/* === dark mode === */
+@layer theme {
+    .dark {
+        /* text */
+        --color-text-primary: #F3F4F6;
+        --color-text-muted: #A1A1AA;
+        --color-text-accent: #818CF8;
+        --color-text-white: #FFFFFF;
+
+        /* buttons */
+        --color-button: #818CF8;
+        --color-button-hover: #6366F1;
+        --color-button-active: #3730A3;
+        --color-button-text: #23252C;
+
+        /* backgrounds */
+        --color-bg-primary: #181A20;
+        /* app/page background */
+        --color-bg-secondary: #23252C;
+        /* cards, modals, sheets */
+        --color-bg-tertiary: #333a4e;
+        /* inputs, muted containers */
+        --color-backdrop: rgba(20, 22, 28, 0.68);
+
+        /* status colors */
+        --color-success: #34D399;
+        --color-warning: #FBBF24;
+        --color-error: #F87171;
+        --color-error-deep: #EF4444;
+
+        /* borders */
+        --color-border: #353842;
+        --color-border-muted: #232837;
+        /* same as tertiary */
+
+        /* disabled */
+        --color-disabled-bg: #23262F;
+        --color-disabled-text: #6B7280;
+
+        /* radius & shadow */
+        --shadow-xs: 0 1px 2px 0 rgba(20, 22, 28, 0.10);
+        --shadow-sm: 0 1.5px 4px 0 rgba(20, 22, 28, 0.16);
+        --shadow: 0 4px 14px rgba(20, 22, 28, 0.32);
+        --shadow-lg: 0 8px 32px rgba(20, 22, 28, 0.38);
+
+        /* accents */
+        --color-accent: #818CF8;
+        --color-ring-accent: #818CF8;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply inline-block text-text-white font-bold px-8 py-4 rounded-full shadow-xl text-lg;
+    }
+
+    .link-primary {
+        @apply text-text-accent font-semibold hover:underline hover:text-button-hover transition text-center
+    }
+
+    .link-underline-transition {
+        @apply cursor-pointer text-text-primary hover:text-text-accent transition-colors relative after:block after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-button after:transition-all after:duration-300 hover:after:w-full
+    }
+
+    .btn-transition {
+        @apply bg-button hover:bg-button-hover transition cursor-pointer
+    }
+
+    .gray-btn-transition {
+        @apply bg-bg-tertiary font-semibold text-text-primary transition hover:bg-button/10 hover:text-text-accent focus:outline-none focus:ring-2 focus:ring-ring-accent/30 text-center rounded-lg border border-border-muted shadow-sm
+    }
+
+    .warning-btn-transition {
+        @apply text-error hover:bg-error/10 transition cursor-pointer
+    }
+
+    .clear-btn-transition {
+        @apply bg-error/90 text-text-white font-semibold shadow-sm hover:bg-error-deep focus:bg-error-deep focus:outline-none focus:ring-2 focus:ring-error/50 focus:ring-offset-2 transition text-base cursor-pointer
+    }
+}
