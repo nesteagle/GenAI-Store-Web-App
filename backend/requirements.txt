@@ -43,3 +43,4 @@ pyodbc
 langchain-ollama
 langchain
 langgraph
+numpy

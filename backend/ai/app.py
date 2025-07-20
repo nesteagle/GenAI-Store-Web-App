@@ -18,15 +18,17 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 load_dotenv()
 
-llm = ChatOllama(model="llama3.1", temperature=0)
-embeddings = OllamaEmbeddings(model="llama3")
+llm = ChatOllama(model="llama3.1:8b", temperature=0)
+embeddings = OllamaEmbeddings(model="llama3.1:8b")
 vector_store = InMemoryVectorStore(embeddings)
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
 
 items = [
-    # ... assume List[Item] from DB module
+    Item(id=1, name="Earth Globe", description="Is triangular, how particular", price=123, image_src="https://cdn.pixabay.com/photo/2021/12/08/04/26/flower-6854656_1280.jpg"),
+    Item(id=2, name="Cheese Wheel", description="A square block of cheese despite its name", price=342, image_src="https://cdn.pixabay.com/photo/2021/12/08/04/26/flower-6854656_1280.jpg")
+# ... assume List[Item] from DB module
+# Currently sample data - when testing, ask about the shape and expect description returns
 ]
-
 
 def get_section(x: int, n_splits: int):
     if n_splits == 1:
@@ -38,23 +40,22 @@ def get_section(x: int, n_splits: int):
     else:
         return "end"
 
-
-def create_chunked_docs_from_items(
-    items: List[Item], chunk_size=1500, chunk_overlap=200
-):
+def create_chunked_docs_from_items(items, chunk_size=1500, chunk_overlap=200, min_chunk_length=500):
+    """
+    Only chunk descriptions longer than min_chunk_length; shorter ones are left as single docs.
+    """
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
     all_docs = []
     for item in items:
-        # Prepare source text to split
         desc = item.description or ""
         base_text = f"{item.name}: {desc}"
-        if not desc.strip():
-            continue
-        # Split text into chunks
-        splits = text_splitter.split_text(base_text)
-        # Optionally assign sections based on position
+        # Decide whether to chunk or not
+        if len(desc) > min_chunk_length:
+            splits = text_splitter.split_text(base_text)
+        else:
+            splits = [base_text]
         for x, chunk in enumerate(splits):
             section = get_section(x, len(splits))
             all_docs.append(
@@ -119,10 +120,7 @@ def analyze_query(state: State):
 
 def retrieve(state: State):
     query = state["query"]
-    retrieved_docs = vector_store.similarity_search(
-        query["query"],
-        filter=lambda doc: doc.metadata.get("section") == query["section"],
-    )
+    retrieved_docs = vector_store.similarity_search(query["query"])
     return {"context": retrieved_docs}
 
 
@@ -200,12 +198,9 @@ llm.bind_tools(
 )
 
 
-def get_example_answer(question: str):
+def ask_question(question: str):
     graph = graph_builder.compile()
     result = graph.invoke({"question": question})
     answer = result["answer"]
     print(answer)
     return answer
-
-
-get_example_answer("What is the shape of the Earth?")

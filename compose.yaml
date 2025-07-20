@@ -1,19 +1,22 @@
 services:
-  fastapi-app:
+  backend:
     build: ./backend
-    container_name: fastapi-store-dev
+    container_name: backend
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app/backend
     environment:
       - PYTHONUNBUFFERED=1
+      - OLLAMA_HOST=http://ollama:11434
     working_dir: /app
     command: uvicorn backend.app:app --host 0.0.0.0 --reload
+    depends_on:
+      - ollama
 
   frontend:
     build: ./frontend
-    container_name: vite-frontend-dev
+    container_name: frontend
     ports:
       - "5173:5173"
     volumes:
@@ -22,5 +25,17 @@ services:
     working_dir: /app
     command: npm run dev -- --host 0.0.0.0
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_MODELS=llama3.1:8b
+    restart: unless-stopped
+
 volumes:
   frontend_node_modules:
+  ollama_data:

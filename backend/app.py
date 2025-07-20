@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import stripe
 from .database import create_db_and_tables, get_db, get_db_session
-from .routers import items, users, orders, admin
+from .routers import items, users, orders, admin, ai
 from .models import OrderItemCreate, User, OrderCreate
 from .auth import get_current_user
 from .services.order_services import create_order_service
@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-origins = ["https://frontend-app.graydune-f392eb79.westus2.azurecontainerapps.io"]
+origins = [FRONTEND_URL]
 
 app.add_middleware(
     CORSMiddleware,
@@ -64,7 +64,7 @@ app.include_router(items.router)
 app.include_router(users.router)
 app.include_router(orders.router)
 app.include_router(admin.router)
-
+app.include_router(ai.router)
 
 class CartItem(BaseModel):
     """Cart item with product ID and quantity."""
