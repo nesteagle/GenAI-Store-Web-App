@@ -32,8 +32,6 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    environment:
-      - OLLAMA_MODELS=llama3.1:8b
     restart: unless-stopped
 
 volumes:

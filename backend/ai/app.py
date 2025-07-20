@@ -14,6 +14,7 @@ from langchain_ollama.chat_models import ChatOllama
 from langchain_ollama import OllamaEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.documents import Document
+from langchain_core.tools import tool
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 load_dotenv()
@@ -24,11 +25,24 @@ vector_store = InMemoryVectorStore(embeddings)
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
 
 items = [
-    Item(id=1, name="Earth Globe", description="Is triangular, how particular", price=123, image_src="https://cdn.pixabay.com/photo/2021/12/08/04/26/flower-6854656_1280.jpg"),
-    Item(id=2, name="Cheese Wheel", description="A square block of cheese despite its name", price=342, image_src="https://cdn.pixabay.com/photo/2021/12/08/04/26/flower-6854656_1280.jpg")
-# ... assume List[Item] from DB module
-# Currently sample data - when testing, ask about the shape and expect description returns
+    Item(
+        id=1,
+        name="Earth Globe",
+        description="Is triangular, how particular",
+        price=123,
+        image_src="https://cdn.pixabay.com/photo/2021/12/08/04/26/flower-6854656_1280.jpg",
+    ),
+    Item(
+        id=2,
+        name="Cheese Wheel",
+        description="A square block of cheese despite its name",
+        price=342,
+        image_src="https://cdn.pixabay.com/photo/2021/12/08/04/26/flower-6854656_1280.jpg",
+    ),
+    # ... assume List[Item] from DB module
+    # Currently sample data - when testing, ask about the shape and expect description returns
 ]
+
 
 def get_section(x: int, n_splits: int):
     if n_splits == 1:
@@ -40,7 +54,10 @@ def get_section(x: int, n_splits: int):
     else:
         return "end"
 
-def create_chunked_docs_from_items(items, chunk_size=1500, chunk_overlap=200, min_chunk_length=500):
+
+def create_chunked_docs_from_items(
+    items, chunk_size=1500, chunk_overlap=200, min_chunk_length=500
+):
     """
     Only chunk descriptions longer than min_chunk_length; shorter ones are left as single docs.
     """
@@ -132,7 +149,7 @@ def generate(state: State):
 
 
 def recommend_similar_item(query: str, top_k: int = 1) -> list[dict]:
-    """Recommends k product items most similar (by name and description) to the query."""
+    """Recommends most similar item to the query."""
     # Embed the query text
     query_vector = embeddings.embed([query])[0]
     # Search vector store for similar items
@@ -149,34 +166,37 @@ def recommend_similar_item(query: str, top_k: int = 1) -> list[dict]:
     ]
 
 
+@tool
 def recommend_item():
-    """Recommends bestseller items"""
+    """Recommends popular items"""
     return [1, 2]  # hardcoded for now.
 
 
+@tool
 def add_item_to_cart(item_id: int, quantity: int = 1) -> str:
     """
     Adds the specified item (by ID) in the given quantity to the user's cart.
-    The React frontend should listen for this function call and update the UI/cart accordingly.
-    Returns a confirmation string.
     """
     # In production: emit event, update server, context, or session
     # For now, just return a string for LLM chat
     return f"Added {quantity} of item {item_id} to your cart."
 
 
+@tool
 def get_cart() -> List[dict]:
-    """Returns the current contents of the user's cart as a list of items."""
+    """Returns contents of the user's cart as a list of items."""
     # Implement using your in-memory or persisted cart model
     pass
 
 
+@tool
 def remove_item_from_cart(item_id: int) -> str:
-    """ Removes the specified item from the user's cart."""
+    """Removes the specified item from the user's cart."""
     # Implement removal logic
     pass
 
 
+@tool
 def direct_to_checkout_menu():
     """Directs the user to checkout menu"""
     # returns an event? that directs to checkout menu
