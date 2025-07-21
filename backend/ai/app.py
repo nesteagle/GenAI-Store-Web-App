@@ -95,10 +95,11 @@ vector_store.add_documents(chunked_docs)
 
 client = Client(api_key=LANGSMITH_API_KEY)
 
-template = """Use the following pieces of context to answer the question at the end.
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
-Use three sentences maximum and keep the answer as concise as possible.
-Always say "thanks for asking!" at the end of the answer.
+template = """Find pieces of context to answer the question at the end.
+Do not make up answers, if necessary say you don't know.
+Keep the answer as concise as possible, use three sentences max.
+If user is asking a question, say "Thanks for asking!". 
+Otherwise, tell the user you've done their request.
 
 {context}
 
@@ -207,7 +208,7 @@ graph_builder = StateGraph(State).add_sequence([analyze_query, retrieve, generat
 graph_builder.add_edge(START, "analyze_query")
 
 
-llm.bind_tools(
+llm = llm.bind_tools(
     [
         recommend_similar_item,
         add_item_to_cart,
