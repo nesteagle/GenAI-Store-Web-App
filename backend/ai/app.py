@@ -56,7 +56,7 @@ def get_section(x: int, n_splits: int):
 
 
 def create_chunked_docs_from_items(
-    items, chunk_size=1500, chunk_overlap=200, min_chunk_length=500
+    items, chunk_size=500, chunk_overlap=50, min_chunk_length=300
 ):
     """
     Only chunk descriptions longer than min_chunk_length; shorter ones are left as single docs.
@@ -95,20 +95,19 @@ vector_store.add_documents(chunked_docs)
 
 client = Client(api_key=LANGSMITH_API_KEY)
 
-template = """Find pieces of context to answer the question at the end.
-Do not make up answers, if necessary say you don't know.
-Keep the answer as concise as possible, use three sentences max.
-If user is asking a question, say "Thanks for asking!". 
-Otherwise, tell the user you've done their request.
-
-{context}
+prompt = PromptTemplate.from_template(
+    """You are an assistant for a store. You must answer user questions about products accurately and concisely. DO NOT make up facts. 
+If you are unsure or context is missing, say "I don't know". 
+When answering a question, start with "Thanks for asking!"
+When taking an action, first acknowledge the request.
 
 Question: {question}
+Relevant product info:
+{context}
 
-Helpful Answer:"""
-
-prompt = PromptTemplate.from_template(template)
-
+Your answer (three sentences max):
+"""
+)
 
 class Search(TypedDict):
     """Search query."""
