@@ -11,8 +11,8 @@ services:
       - OLLAMA_HOST=http://ollama:11434
     working_dir: /app
     command: uvicorn backend.app:app --host 0.0.0.0 --reload
-    depends_on:
-      - ollama
+    # depends_on:
+    #   - ollama
 
   frontend:
     build: ./frontend
@@ -25,15 +25,15 @@ services:
     working_dir: /app
     command: npm run dev -- --host 0.0.0.0
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
+#   ollama:
+#     image: ollama/ollama:latest
+#     container_name: ollama
+#     ports:
+#       - "11434:11434"
+#     volumes:
+#       - ollama_data:/root/.ollama
+#     restart: unless-stopped
 
 volumes:
   frontend_node_modules:
-  ollama_data:
+#  ollama_data:

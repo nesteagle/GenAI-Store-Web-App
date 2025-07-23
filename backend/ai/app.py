@@ -1,7 +1,6 @@
 import os
 
-from backend.models import Item
-
+from collections import defaultdict
 from dotenv import load_dotenv
 from typing import List, TypedDict, Literal
 from typing_extensions import Annotated
@@ -10,19 +9,35 @@ from langgraph.graph import START, StateGraph
 from langchain_core.prompts import PromptTemplate
 
 from langsmith import Client
-from langchain_ollama.chat_models import ChatOllama
-from langchain_ollama import OllamaEmbeddings
+
+# from langchain_ollama.chat_models import ChatOllama
+# from langchain_ollama import OllamaEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_core.documents import Document
 from langchain_core.tools import tool
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain.schema import (
+    BaseMessage,
+    HumanMessage,
+    AIMessage,
+    SystemMessage,
+)  # SystemMessage if needed eventually for sys prompt
+from backend.models import Item
+
 
 load_dotenv()
 
-llm = ChatOllama(model="llama3.1:8b", temperature=0)
-embeddings = OllamaEmbeddings(model="llama3.1:8b")
+llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.1)
+embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+
 vector_store = InMemoryVectorStore(embeddings)
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
+
+session_histories : defaultdict[str, list[BaseMessage]] = defaultdict(list)
+
+MAX_CONTEXT_TURNS = 5  # 10 total messages
+
 
 items = [
     Item(
@@ -109,6 +124,7 @@ Your answer (three sentences max):
 """
 )
 
+
 class Search(TypedDict):
     """Search query."""
 
@@ -141,10 +157,32 @@ def retrieve(state: State):
     return {"context": retrieved_docs}
 
 
-def generate(state: State):
-    docs_content = "\n\n".join(doc.page_content for doc in state["context"])
-    messages = prompt.invoke({"question": state["question"], "context": docs_content})
-    response = llm.invoke(messages)
+def generate(state: State, user_id: str):
+    history = session_histories[user_id]
+
+    MAX_MESSAGES = MAX_CONTEXT_TURNS * 2
+    history = history[-MAX_MESSAGES:]
+    session_histories[user_id] = history
+
+    context_text = (
+        "\n\n".join(doc.page_content for doc in state.get("context", []))
+        or "No relevant product info found."
+    )
+
+    system_message_text = prompt.format(context=context_text, question="{question}")
+
+    messages = (
+        [SystemMessage(content=system_message_text)]
+        + history
+        + [HumanMessage(content=state["question"])]
+    )
+
+    response = llm.chat(messages=messages)
+
+    # add msg to history
+    session_histories[user_id].append(HumanMessage(content=state["question"]))
+    session_histories[user_id].append(AIMessage(content=response.content))
+
     return {"answer": response.content}
 
 
@@ -218,9 +256,17 @@ llm = llm.bind_tools(
 )
 
 
-def ask_question(question: str):
+def ask_question(question: str, user_id: str):
+    state = {"question": question}
+
     graph = graph_builder.compile()
-    result = graph.invoke({"question": question})
-    answer = result["answer"]
+
+    analyzed = analyze_query(state)
+    state.update(analyzed)
+    retrieved = retrieve(state)
+    state.update(retrieved)
+    generated = generate(state, user_id=user_id)
+    answer = generated["answer"]
+
     print(answer)
     return answer
