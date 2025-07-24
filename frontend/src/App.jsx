@@ -22,6 +22,7 @@ import CheckoutPage from './pages/Checkout';
 import Items from './admin/pages/Items';
 import Users from './admin/pages/Users';
 import Orders from './admin/pages/Orders';
+import ChatPage from './pages/Chat';
 
 function App() {
     useInitTheme();
@@ -40,6 +41,7 @@ function App() {
                         <Route path="/admin/items" element={<Items />} />
                         <Route path="/admin/users" element={<Users />} />
                         <Route path="/admin/orders" element={<Orders />} />
+                        <Route path="/chat" element={<ChatPage/>}/>
                     </Routes>
                 </NotificationProvider>
             </CartProvider>

@@ -34,7 +34,7 @@ embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 vector_store = InMemoryVectorStore(embeddings)
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
 
-session_histories : defaultdict[str, list[BaseMessage]] = defaultdict(list)
+session_histories: defaultdict[str, list[BaseMessage]] = defaultdict(list)
 
 MAX_CONTEXT_TURNS = 5  # 10 total messages
 
@@ -111,16 +111,29 @@ vector_store.add_documents(chunked_docs)
 client = Client(api_key=LANGSMITH_API_KEY)
 
 prompt = PromptTemplate.from_template(
-    """You are an assistant for a store. You must answer user questions about products accurately and concisely. DO NOT make up facts. 
-If you are unsure or context is missing, say "I don't know". 
-When answering a question, start with "Thanks for asking!"
-When taking an action, first acknowledge the request.
+    """
+You are a helpful assistant for an online store. Your job is to answer user questions about products accurately and clearly, using **only** the provided product information and conversation history.
 
-Question: {question}
-Relevant product info:
+- **Do NOT make up any facts.**  
+- If the answer cannot be found in the product info or conversation history, please respond: "I don't know."  
+- When answering a question, start your response with: "Thanks for asking!"  
+- When the user requests an action (like adding an item to a cart), first acknowledge the request, then describe what you did.  
+- Keep answers short and to the point — no more than three sentences.
+
+---
+
+**User Question:**  
+{question}
+
+**Relevant Product Info:**  
 {context}
 
-Your answer (three sentences max):
+**Conversation History:**  
+{chat_history}
+
+---
+
+Your response:
 """
 )
 
@@ -153,7 +166,7 @@ def analyze_query(state: State):
 
 def retrieve(state: State):
     query = state["query"]
-    retrieved_docs = vector_store.similarity_search(query["query"])
+    retrieved_docs = vector_store.similarity_search(query["query"], k=3)
     return {"context": retrieved_docs}
 
 
@@ -169,17 +182,15 @@ def generate(state: State, user_id: str):
         or "No relevant product info found."
     )
 
-    system_message_text = prompt.format(context=context_text, question="{question}")
+    chat_history_str = ""
+    for msg in history:
+        role = "User" if isinstance(msg, HumanMessage) else "Assistant"
+        chat_history_str += f"{role}: {msg.content}\n"
 
-    messages = (
-        [SystemMessage(content=system_message_text)]
-        + history
-        + [HumanMessage(content=state["question"])]
-    )
+    prompt_text = f"{prompt.format(context=context_text, question=state['question'], chat_history=chat_history_str)}\n"
 
-    response = llm.chat(messages=messages)
+    response = llm.invoke(prompt_text)
 
-    # add msg to history
     session_histories[user_id].append(HumanMessage(content=state["question"]))
     session_histories[user_id].append(AIMessage(content=response.content))
 
