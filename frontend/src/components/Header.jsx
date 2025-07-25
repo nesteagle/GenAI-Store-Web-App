@@ -6,7 +6,6 @@ import ShoppingCartButton from './ShoppingCartButton';
 import Button from './Button';
 import Icon from './Icon';
 import Container from './Container';
-import ChatWidget from './ChatComponents';
 
 export default function StoreHeader() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -62,7 +61,6 @@ export default function StoreHeader() {
                     <Button variant="secondary" size="xs" onClick={() => setMenuOpen((v) => !v)} className="md:hidden">
                         <Icon name="mobile" className="text-text-primary" />
                     </Button>
-                    <ChatWidget/>
                 </div>
             </Container>
 
