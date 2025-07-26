@@ -50,7 +50,7 @@ export function ChatInput({ onSend, placeholder }) {
                     setMessage('');
                 }
             }}
-            className="w-11/12 max-w-3xl bg-bg-secondary rounded-lg shadow p-4 border border-border focus-within:border-accent transition-colors mb-6"
+            className="w-11/12 max-w-4xl bg-bg-secondary rounded-lg shadow p-4 border border-border focus-within:border-accent transition-colors mb-6"
             aria-label="Chat message input"
         >
             <textarea
@@ -110,7 +110,7 @@ export function ChatMessages({ messages = [], sending = false }) {
     return (
         <main
             ref={containerRef}
-            className="flex-1 overflow-y-auto p-4 space-y-3 bg-bg-primary"
+            className="max-w-4xl flex-1 overflow-y-auto p-4 space-y-3 bg-bg-primary"
             aria-live="polite"
             aria-relevant="additions"
             role="log"
@@ -122,7 +122,7 @@ export function ChatMessages({ messages = [], sending = false }) {
                         key={i}
                         className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                     >
-                        <div className={` max-w-[70%] whitespace-pre-wrap rounded-lg px-4 py-2 text-sm break-words
+                        <div className={` max-w-[70%] whitespace-pre-wrap rounded-lg px-4 py-3 text-sm break-words
                             ${isUser ?
                                 "bg-button text-button-text rounded-tr-none shadow" :
                                 "bg-bg-secondary border border-border rounded-tl-none"}`}
