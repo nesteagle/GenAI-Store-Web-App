@@ -81,3 +81,9 @@ class OrderCreate(BaseModel):
     currency: str | None = None
     amount: int
     email: str
+
+class CartItem(BaseModel):
+    """Cart item with product ID and quantity."""
+
+    id: int
+    qty: int
