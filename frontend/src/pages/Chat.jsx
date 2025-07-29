@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuthenticatedApi } from "../hooks/useApi";
 import { ChatInput, ChatMessages } from "../components/ChatComponents";
 import Button from "../components/Button";
+import { useShoppingCart } from "../context/CartContext";
 
 export default function ChatPage() {
     const CHAT_HISTORY_KEY = "chat";
     const storage = window.sessionStorage;
     const { callApi } = useAuthenticatedApi();
+    const { cart } = useShoppingCart();
     const [messages, setMessages] = useState(() => {
         const stored = storage.getItem(CHAT_HISTORY_KEY);
         return stored
@@ -35,7 +37,10 @@ export default function ChatPage() {
         setSending(true);
 
         try {
-            const data = await callApi("/assistant/ask/", "POST", { message: msg });
+            const data = await callApi("/assistant/ask/", "POST", {
+                message: msg,
+                cart: cart.map(item => ({ id: item.id, quantity: item.quantity }))
+            });
             setMessages((prev) => [
                 ...prev,
                 { role: "assistant", content: data },
