@@ -1,8 +1,6 @@
-import json
-
 from typing import List
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from backend.ai.app import ask_question
 from backend.auth import get_current_user
 from backend.models import User, CartItem

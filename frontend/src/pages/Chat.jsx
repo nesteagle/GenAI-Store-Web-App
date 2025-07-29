@@ -39,7 +39,7 @@ export default function ChatPage() {
         try {
             const data = await callApi("/assistant/ask/", "POST", {
                 message: msg,
-                cart: cart.map(item => ({ id: item.id, quantity: item.quantity }))
+                cart: cart.map(item => ({ id: item.id, qty: item.quantity }))
             });
             setMessages((prev) => [
                 ...prev,

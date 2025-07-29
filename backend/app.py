@@ -17,12 +17,11 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from pydantic import BaseModel
 from dotenv import load_dotenv
 import stripe
-from .database import create_db_and_tables, get_db, get_db_session
+from .database import create_db_and_tables, get_db
 from .routers import items, users, orders, admin, ai
-from .models import OrderItemCreate, User, OrderCreate, CartItem
+from .models import OrderItemCreate, User, OrderCreate
 from .auth import get_current_user
 from .services.order_services import create_order_service
 from .services.item_services import get_item_service

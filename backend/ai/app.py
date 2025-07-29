@@ -1,6 +1,5 @@
 import os
 
-from collections import defaultdict
 from dotenv import load_dotenv
 from typing import List
 
@@ -13,12 +12,13 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langgraph.prebuilt import ToolNode
 
-from backend.models import Item, CartItem
+from backend.models import CartItem
 from backend.ai.prompts import few_shot_examples, system_prompt
 from backend.ai.vectorstore import vectorstore_add_items, vectorstore_search_text
 from backend.ai.tools import tools
 from backend.ai.models import Search, State
 from backend.ai.utils import format_cart
+from backend.ai.session import get_items, get_items_dict, get_session_history, set_session_history
 
 
 load_dotenv()
@@ -26,34 +26,11 @@ load_dotenv()
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.1)
 LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
 
-session_histories: defaultdict[str, list[BaseMessage]] = defaultdict(list)
-
 MAX_CONTEXT_MESSAGES = 8
-
-
-items = [
-    Item(
-        id=1,
-        name="Earth Globe",
-        description="Is triangular, how particular",
-        price=123,
-        image_src="https://cdn.pixabay.com/photo/2021/12/08/04/26/flower-6854656_1280.jpg",
-    ),
-    Item(
-        id=2,
-        name="Cheese Wheel",
-        description="A square block of cheese despite its name",
-        price=342,
-        image_src="https://cdn.pixabay.com/photo/2021/12/08/04/26/flower-6854656_1280.jpg",
-    ),
-    # ... assume List[Item] from DB module
-    # Currently sample data - when testing, ask about the shape and expect description returns
-    # TODO: cache items on backend load and use as reference
-]
 
 client = Client(api_key=LANGSMITH_API_KEY)
 
-vectorstore_add_items(items)
+vectorstore_add_items(get_items())
 
 tool_node = ToolNode(tools=tools)
 
@@ -76,7 +53,7 @@ def retrieve(state: State) -> State:
 
 def generate(state: State) -> State:
     system_prompt_msg = SystemMessage(content=system_prompt.strip())
-    cart_msg = SystemMessage(format_cart(cart=state.get("cart", []), item_lookup=items))
+    cart_msg = SystemMessage(format_cart(cart=state.get("cart", []), item_lookup=get_items_dict()))
 
     messages = [system_prompt_msg, cart_msg]
 
@@ -165,7 +142,7 @@ graph = graph_builder.compile()
 
 
 def ask_question(question: str, user_id: str, cart: List[CartItem] = None) -> str:
-    history = session_histories.get(user_id, [])
+    history = get_session_history(user_id)
 
     initial_state: State = {
         "question": question,
@@ -180,6 +157,6 @@ def ask_question(question: str, user_id: str, cart: List[CartItem] = None) -> st
 
     final_state = graph.invoke(initial_state)
 
-    session_histories[user_id] = final_state.get("messages", [])
+    set_session_history(user_id=user_id, messages=final_state.get("messages"))
 
     return final_state["answer"]
