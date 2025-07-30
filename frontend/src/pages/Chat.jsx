@@ -8,7 +8,7 @@ export default function ChatPage() {
     const CHAT_HISTORY_KEY = "chat";
     const storage = window.sessionStorage;
     const { callApi } = useAuthenticatedApi();
-    const { cart } = useShoppingCart();
+    const { cart, setCart, createCartFromSimplified } = useShoppingCart();
     const [messages, setMessages] = useState(() => {
         const stored = storage.getItem(CHAT_HISTORY_KEY);
         return stored
@@ -39,12 +39,17 @@ export default function ChatPage() {
         try {
             const data = await callApi("/assistant/ask/", "POST", {
                 message: msg,
-                cart: cart.map(item => ({ id: item.id, qty: item.quantity }))
+                cart: { "items": cart.map(item => ({ id: item.id, qty: item.quantity })) }
             });
+            const answer = data.answer;
             setMessages((prev) => [
                 ...prev,
-                { role: "assistant", content: data },
+                { role: "assistant", content: answer },
             ]);
+            const newCartItems = data.cart.items
+            const newCart = createCartFromSimplified(newCartItems);
+            // perhaps do a "version control" on cart to see changes
+            setCart(newCart);
         } catch (error) {
             // handle 403 auth error, or disable page routing if not logged in
             setMessages((prev) => [

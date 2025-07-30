@@ -11,7 +11,7 @@ export default function AccountPage() {
         endpoint: "/orders/",
         method: "GET"
     }), []);
-    const { data, isDataLoading, error } = useFetchList(fetchFunction, "orders", "orders_cache", 3 * 60 * 1000);
+    const { data, isDataLoading, error } = useFetchList("orders", "orders_cache", fetchFunction, 3 * 60 * 1000);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const { isAuthenticated } = useAuth0();
 

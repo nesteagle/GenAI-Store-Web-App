@@ -1,8 +1,13 @@
+from pydantic import BaseModel
 from typing import TypedDict, Literal
 from typing_extensions import Annotated
 from langgraph.graph.message import add_messages
 from langchain_core.documents import Document
 from backend.models import CartItem
+
+
+class Cart(BaseModel):
+    items: list[CartItem]
 
 
 class Search(TypedDict):
@@ -26,4 +31,4 @@ class State(TypedDict):
     context: list[Document]
     query: dict
     answer: str
-    cart: list[CartItem]
+    cart: Cart

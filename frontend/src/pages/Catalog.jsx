@@ -1,4 +1,3 @@
-import { useMemo } from "react"
 import ProductGrid from "../components/ProductGrid";
 import useProductFilters from "../hooks/useProducts"
 import useFetchList from "../hooks/useFetchList";
@@ -10,11 +9,7 @@ import Icon from "../components/Icon";
 import Container from "../components/Container";
 
 export default function Catalog() {
-    const fetchFunction = useMemo(() => ({
-        endpoint: "/items/",
-        method: "GET"
-    }), []);
-    const { data, isDataLoading, error } = useFetchList(fetchFunction, "items", "items_cache");
+    const { data, isDataLoading, error } = useFetchList("items", "items_cache");
     const { category, setCategory, categories, search, setSearch, products } = useProductFilters(data, "All");
 
     return (

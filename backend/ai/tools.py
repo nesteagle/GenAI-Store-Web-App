@@ -1,10 +1,18 @@
+from typing import Annotated
+
 from langchain_core.tools import tool
-from backend.ai.utils import add_item_cart_service
+from langgraph.prebuilt import InjectedState
+from backend.ai.utils import add_item_cart_service, remove_item_cart_service
 from backend.ai.vectorstore import vectorstore_search_text
+from backend.ai.models import Cart
+
 
 @tool
 def recommend_similar_items(
-    query: str, top_k: int = 1, add_to_cart: bool = False
+    query: str,
+    cart: Annotated[Cart, InjectedState("cart")],
+    top_k: int = 1,
+    add_to_cart: bool = False,
 ) -> list[dict]:
     """Recommends the most similar item(s) to the query string.
 
@@ -27,9 +35,8 @@ def recommend_similar_items(
     ]
     if add_to_cart:
         for item in similar_items:
-            add_item_cart_service(item_id=item["id"])
+            add_item_cart_service(cart=cart, item_id=item["id"])
     return similar_items
-
 
 
 @tool
@@ -39,18 +46,21 @@ def recommend_item():
 
 
 @tool
-def add_item_to_cart(item_id: int, quantity: int = 1) -> str:
+def add_item_to_cart(
+    item_id: int, cart: Annotated[Cart, InjectedState("cart")], quantity: int = 1
+) -> Cart:
     """
     Adds the specified item (by ID) in the given quantity to the user's cart.
     """
-    add_item_cart_service(item_id=item_id, quantity=quantity)
+    return add_item_cart_service(cart=cart, item_id=item_id, quantity=quantity)
 
 
 @tool
-def remove_item_from_cart(item_id: int) -> str:
+def remove_item_from_cart(
+    item_id: int, cart: Annotated[Cart, InjectedState("cart")]
+) -> Cart:
     """Removes the specified item (by ID) from the user's cart."""
-    # Implement removal logic
-    pass
+    return remove_item_cart_service(cart=cart, item_id=item_id)
 
 
 @tool

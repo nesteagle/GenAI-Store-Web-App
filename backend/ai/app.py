@@ -1,7 +1,6 @@
 import os
 
 from dotenv import load_dotenv
-from typing import List
 
 from langgraph.graph import START, END, StateGraph
 
@@ -12,13 +11,17 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
 from langgraph.prebuilt import ToolNode
 
-from backend.models import CartItem
 from backend.ai.prompts import few_shot_examples, system_prompt
 from backend.ai.vectorstore import vectorstore_add_items, vectorstore_search_text
 from backend.ai.tools import tools
-from backend.ai.models import Search, State
+from backend.ai.models import Search, State, Cart
 from backend.ai.utils import format_cart
-from backend.ai.session import get_items, get_items_dict, get_session_history, set_session_history
+from backend.ai.session import (
+    get_items,
+    get_items_dict,
+    get_session_history,
+    set_session_history,
+)
 
 
 load_dotenv()
@@ -53,7 +56,9 @@ def retrieve(state: State) -> State:
 
 def generate(state: State) -> State:
     system_prompt_msg = SystemMessage(content=system_prompt.strip())
-    cart_msg = SystemMessage(format_cart(cart=state.get("cart", []), item_lookup=get_items_dict()))
+    cart_msg = SystemMessage(
+        format_cart(cart=state.get("cart", []), item_lookup=get_items_dict())
+    )
 
     messages = [system_prompt_msg, cart_msg]
 
@@ -141,7 +146,7 @@ graph_builder.add_edge("generate_final_reply", END)
 graph = graph_builder.compile()
 
 
-def ask_question(question: str, user_id: str, cart: List[CartItem] = None) -> str:
+def ask_question(question: str, user_id: str, cart: Cart = Cart(items=[])) -> dict:
     history = get_session_history(user_id)
 
     initial_state: State = {
@@ -159,4 +164,4 @@ def ask_question(question: str, user_id: str, cart: List[CartItem] = None) -> st
 
     set_session_history(user_id=user_id, messages=final_state.get("messages"))
 
-    return final_state["answer"]
+    return {"answer": final_state["answer"], "cart": final_state["cart"]}

@@ -1,16 +1,16 @@
-from typing import List
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends
 from backend.ai.app import ask_question
 from backend.auth import get_current_user
-from backend.models import User, CartItem
+from backend.models import User
+from backend.ai.models import Cart
 
 router = APIRouter(prefix="/assistant", tags=["assistant"])
 
 
 class ChatMessage(BaseModel):
     message: str
-    cart: List[CartItem]
+    cart: Cart
 
 
 @router.post("/ask/")

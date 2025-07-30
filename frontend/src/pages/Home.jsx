@@ -7,11 +7,7 @@ import Main from "../components/Main";
 import Container from "../components/Container";
 
 export default function HomePage() {
-    const fetchFunction = useMemo(() => ({
-        endpoint: "/items/",
-        method: "GET"
-    }), []);
-    const { data } = useFetchList(fetchFunction, "items", "items_cache");
+    const { data } = useFetchList("items", "items_cache");
     const { products } = useProductFilters(data, "Featured");
 
     return (

@@ -5,7 +5,7 @@ import LoadingIcon from "../../components/LoadingIcon";
 
 export default function AdminViewTable({ endpoint, columns, dataKey }) {
     const fetchFunction = useMemo(() => ({ endpoint, method: "GET" }), [endpoint]);
-    const { data, isDataLoading, error } = useFetchList(fetchFunction, dataKey);
+    const { data, isDataLoading, error } = useFetchList(dataKey, null, fetchFunction);
 
     if (isDataLoading) return <LoadingIcon />;
     if (error) return <div className="text-text-primary">Error: {error.message || "Unknown error"}</div>;

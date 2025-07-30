@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, useEffect } from "react";
-
+import useFetchList from "../hooks/useFetchList";
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
     const STORAGE_KEY = "cart";
-
+    const { data: items } = useFetchList("items", "items_cache")
     const [cart, setCart] = useState(() => {
         try {
             const storedCart = localStorage.getItem(STORAGE_KEY);
@@ -63,14 +63,28 @@ export function CartProvider({ children }) {
         setCart([]);
     }
 
+    function createCartFromSimplified(simplifiedCart) {
+        // simplifiedCart in form [{id:..., qty:...}, ...]
+        return simplifiedCart.map((item) => ({
+            ...items.find(product => product.id === item.id),
+            quantity: item.qty
+        }));
+    }
+
+    function compareCarts(prev, curr) {
+
+    }
+
     return (
         <CartContext.Provider
             value={{
                 cart,
+                setCart,
                 addCartItem,
                 changeCartItem,
                 removeFromCart,
                 clearCart,
+                createCartFromSimplified
             }}
         >
             {children}

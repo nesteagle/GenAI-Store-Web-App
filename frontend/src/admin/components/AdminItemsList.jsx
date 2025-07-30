@@ -7,11 +7,7 @@ import { useAuthenticatedApi } from "../../hooks/useApi";
 import Card from "../../components/Card";
 
 export default function AdminItemsList() {
-    const fetchFunction = useMemo(() => ({
-        endpoint: '/items/',
-        method: 'GET',
-    }), []);
-    const { data: items, isDataLoading } = useFetchList(fetchFunction, "items");
+    const { data: items, isDataLoading } = useFetchList("items");
     const { callApi } = useAuthenticatedApi();
 
     const [editingItem, setEditingItem] = useState(null);
