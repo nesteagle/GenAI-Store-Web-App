@@ -3,6 +3,7 @@ import { useAuthenticatedApi } from "../hooks/useApi";
 import { ChatInput, ChatMessages } from "../components/ChatComponents";
 import Button from "../components/Button";
 import { useShoppingCart } from "../context/CartContext";
+import { useNotification } from "../context/NotificationContext";
 
 export default function ChatPage() {
     const CHAT_HISTORY_KEY = "chat";
@@ -15,6 +16,7 @@ export default function ChatPage() {
             ? JSON.parse(stored)
             : [];
     });
+    const { showCartChanges } = useNotification();
 
     const [inputValue, setInputValue] = useState("");
     const [sending, setSending] = useState(false);
@@ -29,6 +31,16 @@ export default function ChatPage() {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [messages, sending]);
+
+    async function handleCartSuggestion(oldCart, newCart) {
+        const confirmed = await showCartChanges({
+            oldCart: oldCart,
+            newCart: newCart
+        });
+        if (confirmed) {
+            setCart(newCart);
+        }
+    }
 
     async function sendMsg(msg) {
         if (!msg.trim()) return;
@@ -48,8 +60,7 @@ export default function ChatPage() {
             ]);
             const newCartItems = data.cart.items
             const newCart = createCartFromSimplified(newCartItems);
-            // perhaps do a "version control" on cart to see changes
-            setCart(newCart);
+            handleCartSuggestion(cart, newCart);
         } catch (error) {
             // handle 403 auth error, or disable page routing if not logged in
             setMessages((prev) => [

@@ -7,7 +7,8 @@ export default function Button({ variant = "primary", size = "md", children, cla
         catalog_disabled: "bg-bg-tertiary text-text-primary hover:bg-button hover:text-text-white transition",
         danger: "clear-btn-transition",
         warning: "warning-btn-transition",
-        link: "link-primary"
+        link: "link-primary",
+        success:"bg-success/80 text-text-primary hover:bg-success/50 transition border-bg-tertiary"
     };
 
     const sizes = {

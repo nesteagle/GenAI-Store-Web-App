@@ -82,7 +82,7 @@ export function ChatInput({ onSend, placeholder }) {
                     aria-label="Send message"
                     className={`${!message.trim() && 'bg-bg-tertiary text-text-muted'}`}
                 >
-                    <Icon name="search" />
+                    <Icon name="upArrow" />
                 </Button>
             </div>
         </form>
@@ -110,7 +110,7 @@ export function ChatMessages({ messages = [], sending = false }) {
     return (
         <main
             ref={containerRef}
-            className="max-w-4xl flex-1 overflow-y-auto p-4 space-y-3 bg-bg-primary"
+            className="w-4xl flex-1 overflow-y-auto p-4 space-y-3 bg-bg-primary"
             aria-live="polite"
             aria-relevant="additions"
             role="log"
@@ -125,7 +125,7 @@ export function ChatMessages({ messages = [], sending = false }) {
                         <div className={` max-w-[70%] whitespace-pre-wrap rounded-lg px-4 py-3 text-sm break-words
                             ${isUser ?
                                 "bg-button text-button-text rounded-tr-none shadow" :
-                                "bg-bg-secondary border border-border rounded-tl-none"}`}
+                                "bg-bg-secondary border text-text-primary border-border rounded-tl-none"}`}
                         >
                             {msg.content}
                         </div>

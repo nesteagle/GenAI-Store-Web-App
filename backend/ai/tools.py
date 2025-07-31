@@ -56,11 +56,14 @@ def add_item_to_cart(
 
 
 @tool
-def remove_item_from_cart(
-    item_id: int, cart: Annotated[Cart, InjectedState("cart")]
+def remove_items_from_cart(
+    item_ids: list[int], cart: Annotated[Cart, InjectedState("cart")]
 ) -> Cart:
-    """Removes the specified item (by ID) from the user's cart."""
-    return remove_item_cart_service(cart=cart, item_id=item_id)
+    """Removes the specified items (by ID) from the user's cart."""
+    new_cart = cart
+    for item_id in item_ids:
+        new_cart = remove_item_cart_service(cart=cart, item_id=item_id) 
+    return new_cart
 
 
 @tool
@@ -73,6 +76,6 @@ def direct_to_checkout_menu():
 tools = [
     recommend_similar_items,
     add_item_to_cart,
-    remove_item_from_cart,
+    remove_items_from_cart,
     direct_to_checkout_menu,
 ]

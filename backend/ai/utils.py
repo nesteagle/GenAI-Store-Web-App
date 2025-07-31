@@ -18,7 +18,7 @@ def remove_item_cart_service(cart:Cart, item_id: int) -> Cart:
 
 
 def format_cart(cart: Cart, item_lookup: Dict[int, Item]) -> str:
-    if not cart:
+    if not cart.items:
         return "User Cart: (empty)"
     lines = ["User Cart:"]
     for cart_item in cart.items:
