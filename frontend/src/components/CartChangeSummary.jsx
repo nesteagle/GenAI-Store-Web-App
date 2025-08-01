@@ -2,7 +2,7 @@ import Icon from "./Icon";
 import Button from "./Button";
 import Card from "./Card";
 
-function diffCart(oldCart, newCart) {
+export function getCartDifferences(oldCart, newCart) {
     const oldMap = new Map(oldCart.map((item) => [item.id, item]));
     const newMap = new Map(newCart.map((item) => [item.id, item]));
 
@@ -89,12 +89,12 @@ function CartChangeSummaryItem({ item, type, oldQuantity, newQuantity }) {
 }
 
 export default function CartChangeConfirmContent({ oldCart = [], newCart = [] }) {
-    const changes = diffCart(oldCart, newCart);
+    const changes = getCartDifferences(oldCart, newCart);
 
     const hasChanges = changes.added.length > 0 || changes.removed.length > 0 || changes.changed.length > 0;
 
     if (!hasChanges) {
-        return <p className="text-text-muted mb-8">No changes detected.</p>;
+        return null
     }
 
     return (

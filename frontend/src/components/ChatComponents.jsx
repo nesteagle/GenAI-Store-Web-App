@@ -2,6 +2,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from './Icon';
 import Button from './Button';
+import {Link} from "react-router-dom";
 
 export function ChatInput({ onSend, placeholder }) {
     const [message, setMessage] = useState('');
@@ -67,12 +68,16 @@ export function ChatInput({ onSend, placeholder }) {
 
             <div className="flex items-center justify-between mt-2">
                 <div className="flex space-x-2">
-                    <Button variant="secondary" size="xs" aria-label="Checkout">
-                        <Icon name="cart" />
-                    </Button>
-                    <Button variant="secondary" size="xs" aria-label="New Chat">
+                    <Link to="/checkout">
+                        <Button variant="secondary" size="xs" aria-label="Checkout">
+                            <Icon name="cart" />
+                        </Button>
+                    </Link>
+
+                    <Button variant="secondary" size="xs" aria-label="New Chat"> {/*TODO: ADD new chat feature*/}
                         <Icon name="plus" />
                     </Button>
+
                 </div>
 
                 <Button

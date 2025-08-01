@@ -66,16 +66,8 @@ def remove_items_from_cart(
     return new_cart
 
 
-@tool
-def direct_to_checkout_menu():
-    """Directs the user to checkout menu"""
-    # returns an event? that directs to checkout menu
-    pass
-
-
 tools = [
     recommend_similar_items,
     add_item_to_cart,
     remove_items_from_cart,
-    direct_to_checkout_menu,
 ]

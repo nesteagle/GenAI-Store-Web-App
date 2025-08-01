@@ -4,6 +4,7 @@ import { ChatInput, ChatMessages } from "../components/ChatComponents";
 import Button from "../components/Button";
 import { useShoppingCart } from "../context/CartContext";
 import { useNotification } from "../context/NotificationContext";
+import { getCartDifferences } from "../components/CartChangeSummary";
 
 export default function ChatPage() {
     const CHAT_HISTORY_KEY = "chat";
@@ -32,19 +33,39 @@ export default function ChatPage() {
         }
     }, [messages, sending]);
 
-    async function handleCartSuggestion(oldCart, newCart) {
-        const confirmed = await showCartChanges({
-            oldCart: oldCart,
-            newCart: newCart
-        });
-        if (confirmed) {
-            setCart(newCart);
+    async function handleCartSuggestion(oldCart, newCart, onConfirm) {
+        const changes = getCartDifferences(oldCart, newCart);
+
+        if (changes.added.length === 0 && changes.removed.length === 0 && changes.changed.length === 0) {
+            onConfirm();
+        } else {
+            const confirmed = await showCartChanges({
+                oldCart: oldCart,
+                newCart: newCart
+            });
+            if (confirmed) {
+                onConfirm();
+                setCart(newCart);
+            } else {
+                addAssistantMsg("Cancelled suggested changes.")
+            }
         }
+    }
+
+    function addAssistantMsg(msg) {
+        setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: msg },
+        ]);
+    }
+
+    function addUserMsg(msg) {
+        setMessages((prev) => [...prev, { role: "user", content: msg }]);
     }
 
     async function sendMsg(msg) {
         if (!msg.trim()) return;
-        setMessages((prev) => [...prev, { role: "user", content: msg }]);
+        addUserMsg(msg);
         setInputValue("");
         setSending(true);
 
@@ -54,22 +75,15 @@ export default function ChatPage() {
                 cart: { "items": cart.map(item => ({ id: item.id, qty: item.quantity })) }
             });
             const answer = data.answer;
-            setMessages((prev) => [
-                ...prev,
-                { role: "assistant", content: answer },
-            ]);
+
             const newCartItems = data.cart.items
             const newCart = createCartFromSimplified(newCartItems);
-            handleCartSuggestion(cart, newCart);
+            handleCartSuggestion(cart, newCart, () => {
+                addAssistantMsg(answer);
+            });
         } catch (error) {
             // handle 403 auth error, or disable page routing if not logged in
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: "assistant",
-                    content: "Sorry, something went wrong. Please try again.",
-                },
-            ]);
+            addAssistantMsg("Sorry, something went wrong. Please try again.");
         } finally {
             setSending(false);
         }
