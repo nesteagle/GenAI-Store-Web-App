@@ -15,13 +15,13 @@ export default function AdminItemsList() {
     const [confirmOpen, setConfirmOpen] = useState(false);
 
     const handleDelete = async (item) => {
-        const response = await callApi(`/items/${item.id}`, "DELETE")
+        await callApi(`/items/${item.id}`, "DELETE");
         setConfirmOpen(false);
         setDeletingItem(null);
     };
 
     const handleEditSave = async (updatedItem) => {
-        const response = await callApi(`/items/${updatedItem.id}`, "PUT", {
+        await callApi(`/items/${updatedItem.id}`, "PUT", {
             ...updatedItem
         })
         setEditingItem(null);

@@ -19,7 +19,8 @@ export default function StoreHeader() {
         const links = [
             { to: "/", text: "Home" },
             { to: "/catalog", text: "Catalog" },
-            ...(isAuthenticated ? [{ to: "/account", text: "Account" }] : [])
+            ...(isAuthenticated ? [{ to: "/account", text: "Account" }] : []),
+            ...(isAuthenticated ? [{ to: "/chat", text: "Chat" }] : [])
         ];
         return (
             <>

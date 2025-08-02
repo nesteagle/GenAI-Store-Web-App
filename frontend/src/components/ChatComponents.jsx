@@ -2,11 +2,15 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from './Icon';
 import Button from './Button';
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useChat } from '../hooks/useChat';
+import { useNotification } from '../context/NotificationContext';
 
 export function ChatInput({ onSend, placeholder }) {
     const [message, setMessage] = useState('');
     const textareaRef = useRef(null);
+    const { handleClear } = useChat();
+    const { showConfirm } = useNotification();
 
     const LINE_HEIGHT_PX = 24; // inclusive of text padding etc
     const MAX_LINES = 12;
@@ -42,6 +46,17 @@ export function ChatInput({ onSend, placeholder }) {
         }
     };
 
+    async function clearChat() {
+        const confirmed = await showConfirm({
+            title: "New Chat",
+            message: "Are you sure you want to start a new chat and delete all messages from the current one? This action cannot be undone.",
+            confirmLabel: "Clear Chat",
+        });
+        if (confirmed) {
+            handleClear();
+        }
+    }
+
     return (
         <form
             onSubmit={(e) => {
@@ -74,7 +89,7 @@ export function ChatInput({ onSend, placeholder }) {
                         </Button>
                     </Link>
 
-                    <Button variant="secondary" size="xs" aria-label="New Chat"> {/*TODO: ADD new chat feature*/}
+                    <Button variant="secondary" size="xs" aria-label="New Chat" onClick={clearChat}> {/*TODO: ADD new chat feature*/}
                         <Icon name="plus" />
                     </Button>
 
