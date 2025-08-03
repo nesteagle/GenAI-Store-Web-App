@@ -9,9 +9,11 @@ import Main from "../components/Main";
 import Button from "../components/Button";
 import Icon from "../components/Icon";
 import Card from "../components/Card";
+import { useCartCalculations } from "../hooks/useCartCalculations";
 
 export default function CheckoutPage() {
     const { cart, changeCartItem, removeFromCart, clearCart } = useShoppingCart();
+    const { totalFormatted, isEmpty } = useCartCalculations(cart);
     const { showConfirm } = useNotification();
 
     async function handleClearCart() {
@@ -20,12 +22,8 @@ export default function CheckoutPage() {
             message: "Are you sure you want to remove all items from your cart? This action cannot be undone.",
             confirmLabel: "Clear Cart",
         });
-        if (confirmed) {
-            clearCart();
-        }
+        if (confirmed) clearCart();
     }
-
-    const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     return (
         <Main className="py-12">
@@ -37,7 +35,7 @@ export default function CheckoutPage() {
                     <p className="text-text-muted text-lg mb-8">
                         Review your order and adjust quantities before checkout.
                     </p>
-                    {cart.length === 0 ? (
+                    {isEmpty ? (
                         <div className="flex flex-col items-center py-20">
                             <Icon name="cart" size={64} className="text-text-muted mb-4" />
                             <div className="text-text-muted text-lg">Your cart is empty.</div>
@@ -51,16 +49,10 @@ export default function CheckoutPage() {
                                 variant="checkout"
                             />
                             <div className="flex justify-between items-center mt-8 mb-4">
-                                <span className="text-base font-semibold text-text-primary">
-                                    Total:
-                                </span>
-                                <span className="text-lg font-bold text-text-primary">
-                                    ${cartTotal.toFixed(2)}
-                                </span>
+                                <span className="text-base font-semibold text-text-primary">Total:</span>
+                                <span className="text-lg font-bold text-text-primary">{totalFormatted}</span>
                             </div>
-                            <CartActionsCheckout
-                                onClearCart={handleClearCart}
-                            />
+                            <CartActionsCheckout onClearCart={handleClearCart} />
                         </>
                     )}
                 </Card>
@@ -69,9 +61,7 @@ export default function CheckoutPage() {
                     <h2 className="text-2xl font-bold text-text-primary">Checkout</h2>
                     <div>
                         <span className="block text-base font-semibold text-text-primary mb-2">Order Total</span>
-                        <span className="text-2xl font-bold text-text-primary">
-                            ${cartTotal.toFixed(2)}
-                        </span>
+                        <span className="text-2xl font-bold text-text-primary">{totalFormatted}</span>
                     </div>
                     <CheckoutButton />
                     <div className="flex items-center gap-3 mt-4">

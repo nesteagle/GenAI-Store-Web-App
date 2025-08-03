@@ -52,8 +52,10 @@ export function ProfileMenu() {
         function handleClick(e) {
             if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
         }
-        if (open) document.addEventListener("mousedown", handleClick);
-        return () => document.removeEventListener("mousedown", handleClick);
+        if (open) {
+            document.addEventListener("mousedown", handleClick);
+            return () => document.removeEventListener("mousedown", handleClick);
+        }
     }, [open]);
 
     if (!isAuthenticated || isLoading) return null;
@@ -62,7 +64,7 @@ export function ProfileMenu() {
         <div className="relative" ref={menuRef}>
             <button
                 className="flex items-center gap-2 transition-transform hover:scale-icon-medium cursor-pointer"
-                onClick={() => setOpen((v) => !v)}
+                onClick={() => setOpen(!open)}
                 aria-label="Open profile menu"
             >
                 <img

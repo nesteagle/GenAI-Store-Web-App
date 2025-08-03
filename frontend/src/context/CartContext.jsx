@@ -1,11 +1,65 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useReducer, useEffect, useMemo } from "react";
 import useFetchList from "../hooks/useFetchList";
+
 const CartContext = createContext();
+
+function cartReducer(state, action) {
+    switch (action.type) {
+        case 'SET_CART':
+            return action.payload;
+        
+        case 'ADD_ITEM': {
+            const { product, quantity } = action.payload;
+            const existing = state.find(item => item.id === product.id);
+            
+            if (existing) {
+                return state.map(item =>
+                    item.id === product.id
+                        ? { ...item, quantity: item.quantity + quantity }
+                        : item
+                );
+            }
+            return [...state, { ...product, quantity }];
+        }
+        
+        case 'CHANGE_ITEM': {
+            const { product, quantity } = action.payload;
+            const existing = state.find(item => item.id === product.id);
+            
+            if (existing) {
+                return state.map(item =>
+                    item.id === product.id
+                        ? { ...item, quantity }
+                        : item
+                );
+            }
+            return [...state, { ...product, quantity }];
+        }
+        
+        case 'REMOVE_ITEM':
+            return state.filter(item => item.id !== action.payload);
+        
+        case 'CLEAR_CART':
+            return [];
+        
+        case 'CREATE_FROM_SIMPLIFIED': {
+            const { simplifiedCart, items } = action.payload;
+            return simplifiedCart.map(item => ({
+                ...items.find(product => product.id === item.id),
+                quantity: item.qty
+            })).filter(item => item.id !== undefined);
+        }
+        
+        default:
+            return state;
+    }
+}
 
 export function CartProvider({ children }) {
     const STORAGE_KEY = "cart";
-    const { data: items } = useFetchList("items", "items_cache")
-    const [cart, setCart] = useState(() => {
+    const { data: items = [] } = useFetchList("items", "items_cache");
+    
+    const initialCart = useMemo(() => {
         try {
             const storedCart = localStorage.getItem(STORAGE_KEY);
             return storedCart ? JSON.parse(storedCart) : [];
@@ -13,7 +67,9 @@ export function CartProvider({ children }) {
             console.error("Failed to read shopping cart from localStorage", error);
             return [];
         }
-    });
+    }, []);
+    
+    const [cart, dispatch] = useReducer(cartReducer, initialCart);
 
     useEffect(() => {
         try {
@@ -23,70 +79,39 @@ export function CartProvider({ children }) {
         }
     }, [cart]);
 
-    // requires quantity to be >=1
-    function changeCartItem(product, quantity) {
-        setCart((prevCart) => {
-            const existing = prevCart.find((item) => item.id === product.id);
-            if (existing) {
-                return prevCart.map((item) =>
-                    item.id === product.id
-                        ? { ...item, quantity: quantity }
-                        : item
-                );
-            } else {
-                return [...prevCart, { ...product, quantity }];
-            }
-        });
-    }
+    const cartActions = useMemo(() => ({
+        addCartItem: (product, quantity) => 
+            dispatch({ type: 'ADD_ITEM', payload: { product, quantity } }),
+        
+        changeCartItem: (product, quantity) => 
+            dispatch({ type: 'CHANGE_ITEM', payload: { product, quantity } }),
+        
+        removeFromCart: (productId) => 
+            dispatch({ type: 'REMOVE_ITEM', payload: productId }),
+        
+        clearCart: () => 
+            dispatch({ type: 'CLEAR_CART' }),
+        
+        setCart: (newCart) => 
+            dispatch({ type: 'SET_CART', payload: newCart }),
+        
+        createCartFromSimplified: (simplifiedCart) => {
+            const newCart = simplifiedCart.map(item => ({
+                ...items.find(product => product.id === item.id),
+                quantity: item.qty
+            })).filter(item => item.id !== undefined);
+            dispatch({ type: 'SET_CART', payload: newCart });
+            return newCart;
+        }
+    }), [items]);
 
-    // requires quantity to be >=1
-    function addCartItem(product, quantity) {
-        setCart((prevCart) => {
-            const existing = prevCart.find((item) => item.id === product.id);
-            if (existing) {
-                return prevCart.map((item) =>
-                    item.id === product.id
-                        ? { ...item, quantity: item.quantity + quantity }
-                        : item
-                );
-            } else {
-                return [...prevCart, { ...product, quantity }];
-            }
-        });
-    }
-
-    function removeFromCart(productId) {
-        setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
-    }
-
-    function clearCart() {
-        setCart([]);
-    }
-
-    function createCartFromSimplified(simplifiedCart) {
-        // simplifiedCart in form [{id:..., qty:...}, ...]
-        return simplifiedCart.map((item) => ({
-            ...items.find(product => product.id === item.id),
-            quantity: item.qty
-        }));
-    }
-
-    function compareCarts(prev, curr) {
-
-    }
+    const contextValue = useMemo(() => ({
+        cart,
+        ...cartActions
+    }), [cart, cartActions]);
 
     return (
-        <CartContext.Provider
-            value={{
-                cart,
-                setCart,
-                addCartItem,
-                changeCartItem,
-                removeFromCart,
-                clearCart,
-                createCartFromSimplified
-            }}
-        >
+        <CartContext.Provider value={contextValue}>
             {children}
         </CartContext.Provider>
     );

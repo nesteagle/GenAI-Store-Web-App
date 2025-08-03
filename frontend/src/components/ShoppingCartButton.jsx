@@ -1,32 +1,27 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useShoppingCart } from "../context/CartContext";
+import { useCartCalculations } from "../hooks/useCartCalculations";
 import ShoppingCart from "./ShoppingCart";
 import Icon from "./Icon";
 
 export default function ShoppingCartButton() {
     const { cart } = useShoppingCart();
+    const { itemCount } = useCartCalculations(cart);
     const [open, setOpen] = useState(false);
     const buttonRef = useRef(null);
 
-    const handleClick = useCallback(
-        (e) => {
+    useEffect(() => {
+        const handleClick = (e) => {
             if (buttonRef.current && !buttonRef.current.contains(e.target)) {
                 setOpen(false);
             }
-        },
-        [setOpen]
-    );
+        };
 
-    useEffect(() => {
         if (open) {
             document.addEventListener("mousedown", handleClick);
+            return () => document.removeEventListener("mousedown", handleClick);
         }
-        return () => {
-            document.removeEventListener("mousedown", handleClick);
-        };
-    }, [open, handleClick]);
-
-    const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    }, [open]);
 
     return (
         <div className="relative" ref={buttonRef}>

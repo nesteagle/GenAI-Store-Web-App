@@ -89,7 +89,7 @@ export function ChatInput({ onSend, placeholder }) {
                         </Button>
                     </Link>
 
-                    <Button variant="secondary" size="xs" aria-label="New Chat" onClick={clearChat}> {/*TODO: ADD new chat feature*/}
+                    <Button variant="secondary" size="xs" aria-label="New Chat" onClick={clearChat}>
                         <Icon name="plus" />
                     </Button>
 
