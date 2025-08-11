@@ -8,7 +8,7 @@ from langsmith import Client
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from langchain.schema import HumanMessage, AIMessage, SystemMessage
 from langgraph.prebuilt import ToolNode
 
 from backend.ai.prompts import few_shot_examples, system_prompt
@@ -57,14 +57,27 @@ def retrieve(state: State) -> State:
 def generate(state: State) -> State:
     system_prompt_msg = SystemMessage(content=system_prompt.strip())
     cart_msg = SystemMessage(
-        format_cart(cart=state.get("cart", []), item_lookup=get_items_dict())
+        content=format_cart(cart=state.get("cart", []), item_lookup=get_items_dict())
     )
 
-    messages = [system_prompt_msg, cart_msg]
+    raw_history = state.get("messages", []) or []
 
-    for example in few_shot_examples:
-        messages.append(HumanMessage(content=example["question"]))
-        messages.append(AIMessage(content=example["answer"]))
+    few_shot_ids = {id(msg) for msg in few_shot_examples}
+    conversation_history = [
+        msg
+        for msg in raw_history
+        if isinstance(msg, (HumanMessage, AIMessage)) and id(msg) not in few_shot_ids
+    ]
+
+    selected_history = conversation_history[-MAX_CONTEXT_MESSAGES:]
+    if not (
+        selected_history
+        and isinstance(selected_history[-1], HumanMessage)
+        and selected_history[-1].content == state["question"]
+    ):
+        selected_history = selected_history + [HumanMessage(content=state["question"])]
+
+    messages = [system_prompt_msg, cart_msg] + list(few_shot_examples)
 
     context_docs = state.get("context", [])
     if context_docs:
@@ -75,25 +88,14 @@ def generate(state: State) -> State:
             SystemMessage(content=f"Relevant Product Info:\n{context_text}")
         )
 
-    messages.extend(state.get("messages", [])[-MAX_CONTEXT_MESSAGES:])
-
-    if not (
-        messages
-        and isinstance(messages[-1], HumanMessage)
-        and messages[-1].content == state["question"]
-    ):
-        messages.append(HumanMessage(content=state["question"]))
+    messages.extend(selected_history)
 
     response = llm.invoke(messages)
 
-    messages.append(response)
-    state["messages"] = messages
-
+    state["messages"] = selected_history + [response]
     state["tool_calls"] = getattr(response, "tool_calls", []) or []
-
     if not state["tool_calls"]:
         state["answer"] = response.content
-
     return state
 
 
