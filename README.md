@@ -23,6 +23,7 @@ An agentic AI assistant for an e-commerce platform that can suggest, add, and re
 - [Technical Overview](#technical-overview)
 - [Prompt Practices Overview](#prompt-practices-overview)
 - [Project Scope & Impact](#project-scope--impact)
+- [Screenshots](#screenshots)
 - [Configuration](#configuration)
 - [Limitations](#design-choice-limitations)
 
@@ -108,18 +109,6 @@ Aside from the technical details and timeframe, this project is meant to provide
 
 It also adheres to transparent and safe development practices: developed using LangSmith with agent calls analyzed + monitored during development.
 
-## Configuration
-
-Any OpenAI‑compatible model may be used via LangChain configuration. All models work with the same tool‑calling interface and prompting practices (since LangChain handles tool schemas).
-
-**Model options**
-- OPENAI_API_KEY: OpenAI GPT models and OpenAI‑compatible endpoints
-- GOOGLE_API_KEY: Gemini models (current default)
-- ANTHROPIC_API_KEY: Claude models (if enabled separately)
-- LANGSMITH_API_KEY: tracing for responsible development
-
-Model switching: you only need to change the LangChain chat model initialization and keys (no other changes required!)
-
 ## Screenshots
 - **Home Page** - Chat with the assistant here.
 <div align="center">
@@ -134,6 +123,18 @@ Model switching: you only need to change the LangChain chat model initialization
   <img src="screenshots/malicious_chat.png" alt="Prompt injection and sensitive info prevention." width="800"/>
 </div>
 <p align="center"><em>Prompt injection and sensitive info prevention.</em></p>
+
+## Configuration
+
+Any OpenAI‑compatible model may be used via LangChain configuration. All models work with the same tool‑calling interface and prompting practices (since LangChain handles tool schemas).
+
+**Model options**
+- OPENAI_API_KEY: OpenAI GPT models and OpenAI‑compatible endpoints
+- GOOGLE_API_KEY: Gemini models (current default)
+- ANTHROPIC_API_KEY: Claude models (if enabled separately)
+- LANGSMITH_API_KEY: tracing for responsible development
+
+Model switching: you only need to change the LangChain chat model initialization and keys (no other changes required!)
 
 ## Design Choice Limitations
 - Strict product matching prevents ambiguous cart edits
