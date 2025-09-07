@@ -25,6 +25,7 @@ pydantic_core==2.33.2
 Pygments==2.19.1
 PyJWT==2.10.1
 pytest==8.4.1
+pytest-cov
 python-dotenv==1.1.0
 python-multipart==0.0.20
 requests==2.32.4

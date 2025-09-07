@@ -58,15 +58,14 @@ def create_test_order(db: Session, user_id, *item_quantity_tuples):
         OrderItemCreate(item_id=item.id, quantity=quantity)
         for item, quantity in item_quantity_tuples
     ]
-
     order_data = OrderCreate(
         user_id=user_id,
         items=order_items,
         stripe_id="test_stripe_id",
         currency="usd",
-        amount=sum(
+        amount=int(sum(
             item.price * 100 * quantity for item, quantity in item_quantity_tuples
-        ),
+        )),
         email="test@example.com",
     )
 

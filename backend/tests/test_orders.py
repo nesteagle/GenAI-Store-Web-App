@@ -8,8 +8,12 @@ from backend.services.order_services import (
     get_user_orders_service,
     get_order_by_id_service,
     create_order_service,
+    get_orders_admin_service,
+    update_order_service,
+    delete_order_service,
+    get_order_by_id_service,
 )
-from backend.models import OrderCreate, OrderItemCreate
+from backend.models import OrderCreate, OrderItemCreate, Order, OrderItem
 from .helpers import create_test_user, create_test_item, create_test_order
 
 
@@ -64,3 +68,69 @@ def test_get_order_by_id_service(db_session):
 
     assert retrieved_order["id"] == created_order["id"]
     assert retrieved_order["user_id"] == user.id
+
+
+def test_get_orders_admin_service_returns_all_orders(db_session):
+    """Test admin service; admin should see all orders across users."""
+    admin_orders = get_orders_admin_service(db_session)
+    assert admin_orders == []
+
+    user1 = create_test_user(db_session, auth0_sub="auth0|rupert890")
+    user2 = create_test_user(db_session, auth0_sub="auth0|marie321")
+    item1 = create_test_item(db_session, "Kiwi", 2.49, "Green kiwi")
+    item2 = create_test_item(db_session, "Mango", 4.29, "Semi sweet mango")
+
+    order1 = create_test_order(db_session, user1.id, (item1, 2))
+    order2 = create_test_order(db_session, user2.id, (item2, 3))
+
+    admin_orders = get_orders_admin_service(db_session)
+
+    assert len(admin_orders) == 2
+
+    returned_ids = {o["id"] for o in admin_orders}
+    returned_user_ids = {o["user_id"] for o in admin_orders}
+
+    assert order1["id"] in returned_ids
+    assert order2["id"] in returned_ids
+    assert returned_user_ids == {user1.id, user2.id}
+
+
+def test_update_order_service_replaces_items_and_fields(db_session):
+    """Update an existing order and replace its items."""
+    user = create_test_user(db_session, "Eve")
+    item_old = create_test_item(db_session, "Old Item", 1.00, "Old")
+    item_new = create_test_item(db_session, "New Item", 2.00, "New")
+
+    created = create_test_order(db_session, user.id, (item_old, 1))
+    order_id = created["id"]
+
+    order_data = OrderCreate(
+        user_id=user.id,
+        items=[OrderItemCreate(item_id=item_new.id, quantity=3)],
+        stripe_id="stripe_new_123",
+        amount=1234,
+        email="eve_new@example.com",
+    )
+
+    update_order_service(order_id, order_data, db_session)
+    updated = get_order_by_id_service(order_id, db_session)
+
+    assert updated["id"] == order_id
+    assert updated["user_id"] == user.id
+    assert updated["stripe_id"] == "stripe_new_123"
+    assert len(updated["items"]) == 1
+    assert updated["items"][0]["item_id"] == item_new.id
+    assert updated["items"][0]["quantity"] == 3
+
+
+def test_delete_order_service_removes_order_and_items(db_session):
+    """Delete an order and its items."""
+    user = create_test_user(db_session, "Zed")
+    item = create_test_item(db_session, "Temp Item", 3.00, "Temp")
+    created = create_test_order(db_session, user.id, (item, 2))
+    order_id = created["id"]
+
+    delete_order_service(order_id, db_session)
+
+    with pytest.raises(Exception):
+        get_order_by_id_service(order_id, db_session)

@@ -70,8 +70,9 @@ def test_delete_item_service(db_session):
     """Test deleting an item."""
     created_item = create_test_item(db_session, "Mango", 6.99, "Tropical fruit")
 
-    deleted_item = delete_item_service(created_item.id, db_session)
-    assert deleted_item.id == created_item.id
+    deleted_item_id = delete_item_service(created_item.id, db_session)
+    assert deleted_item_id == created_item.id
 
     with pytest.raises(Exception):  # Expected item not found
         get_item_service(created_item.id, db_session)
+
